@@ -1,56 +1,65 @@
+'use strict';
+// The module 'vscode' contains the VS Code extensibility API
+// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { Logger } from './utils/logger';
-import { StatusBarManager } from './utils/statusBar';
-import { ConfigManager } from './config';
-import { ConnectionManager } from './connection';
-import { registerCommands } from './commands';
-import { RemoteExplorer } from './explorer/remoteExplorer';
+import app from './app';
+import initCommands from './initCommands';
+import { reportError } from './helper';
+import fileActivityMonitor from './modules/fileActivityMonitor';
+import { tryLoadConfigs } from './modules/config';
+import { getAllFileService, createFileService, disposeFileService } from './modules/serviceManager';
+import { getWorkspaceFolders, setContextValue } from './host';
+import RemoteExplorer from './modules/remoteExplorer';
 
-let logger: Logger;
-let statusBar: StatusBarManager;
-let configManager: ConfigManager;
-let connectionManager: ConnectionManager;
-let remoteExplorer: RemoteExplorer;
+async function setupWorkspaceFolder(dir) {
+  const configs = await tryLoadConfigs(dir);
+  configs.forEach(config => {
+    createFileService(config, dir);
+  });
+}
 
+function setup(workspaceFolders: vscode.WorkspaceFolder[]) {
+  fileActivityMonitor.init();
+  const pendingInits = workspaceFolders.map(folder => setupWorkspaceFolder(folder.uri.fsPath));
+
+  return Promise.all(pendingInits);
+}
+
+// this method is called when your extension is activated
+// your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-  logger = new Logger();
-  statusBar = new StatusBarManager();
-  configManager = new ConfigManager();
-  connectionManager = new ConnectionManager(logger);
-  remoteExplorer = new RemoteExplorer(connectionManager, logger);
+  try {
+    initCommands(context);
+  } catch (error) {
+    reportError(error, 'initCommands');
+  }
 
-  logger.log('SFTP Dev Sync activated');
+  const workspaceFolders = getWorkspaceFolders();
+  if (!workspaceFolders) {
+    return;
+  }
 
-  // Register tree view
-  vscode.window.registerTreeDataProvider(
-    'sftp-dev-sync-explorer',
-    remoteExplorer
-  );
-
-  // Register all commands
-  registerCommands(context, configManager, connectionManager, logger, remoteExplorer);
-
-  // Watch for config changes
-  const configWatcher = vscode.workspace.createFileSystemWatcher(
-    '**/.vscode/sftp-dev-sync.json'
-  );
-
-  configWatcher.onDidChange(async () => {
-    logger.log('Config file changed');
-    await connectionManager.reconnect();
+  setContextValue('enabled', true);
+  app.sftpBarItem.show();
+  app.state.subscribe(_ => {
+    const currentText = app.sftpBarItem.getText();
+    // current is showing profile
+    if (currentText.startsWith('SFTP')) {
+      app.sftpBarItem.reset();
+    }
+    if (app.remoteExplorer) {
+      app.remoteExplorer.refresh();
+    }
   });
-
-  configWatcher.onDidDelete(async () => {
-    logger.log('Config file deleted');
-    await connectionManager.disconnect();
-  });
-
-  context.subscriptions.push(configWatcher);
-
-  statusBar.show('SFTP Dev Sync ready');
+  try {
+    await setup(workspaceFolders);
+    app.remoteExplorer = new RemoteExplorer(context);
+  } catch (error) {
+    reportError(error);
+  }
 }
 
 export function deactivate() {
-  connectionManager.disconnect();
-  logger.log('SFTP Dev Sync deactivated');
+  fileActivityMonitor.destory();
+  getAllFileService().forEach(disposeFileService);
 }

@@ -2,11 +2,16 @@
 
 Extensão SFTP para VS Code. Sincroniza pastas e arquivos com o servidor de forma simples e rápida. Suporta upload, download, sync automático e seleção de pastas permitidas.
 
-## Instalação
+## Características
 
-1. Clone ou faça download desta extensão
-2. Abra a pasta no VS Code
-3. Pressione `F5` para abrir a janela de desenvolvimento
+- ✅ Upload/Download de arquivos e pastas
+- ✅ Sincronização bidirecional (Local ↔ Remote)
+- ✅ Upload automático ao salvar
+- ✅ **Novo**: Selecione quais pastas PERMITIR para download (em vez de listar o que ignorar)
+- ✅ Explorador remoto na barra lateral
+- ✅ Comparação de arquivos (Diff)
+- ✅ Suporte a múltiplos perfis
+- ✅ Suporte a SSH com chave privada
 
 ## Configuração
 
@@ -14,58 +19,33 @@ Crie um arquivo `.vscode/sftp-dev-sync.json` na raiz do seu projeto:
 
 ```json
 {
-    "name": "Meu Servidor",
-    "host": "example.com",
-    "port": 22,
-    "protocol": "sftp",
-    "username": "deploy",
-    "password": "sua-senha-aqui",
-    "remotePath": "/var/www/app",
-    "uploadOnSave": true,
-    "includeFolders": [
-        "src",
-        "public",
-        "config"
-    ],
-    "includeFiles": [
-        "*.php",
-        "*.js",
-        "*.css",
-        "*.html",
-        "*.json"
-    ]
+  "name": "Seu Servidor",
+  "host": "seu-servidor.com",
+  "port": 22,
+  "protocol": "sftp",
+  "username": "usuario",
+  "password": "senha",
+  "remotePath": "/caminho/remoto",
+  "uploadOnSave": false,
+  "includeFolders": [
+    "src",
+    "public",
+    "config"
+  ]
 }
 ```
 
-### Opções
+### Modo Inclusão (Novo)
 
-- **host**: Endereço do servidor SFTP
-- **port**: Porta (padrão: 22)
-- **username**: Usuário SSH
-- **password**: Senha (ou use `privateKey` e `passphrase`)
-- **remotePath**: Caminho no servidor remoto
-- **uploadOnSave**: Fazer upload automático ao salvar arquivo local
-- **includeFolders**: Lista de pastas que DEVEM ser baixadas. Se vazio, baixa tudo.
-- **includeFiles**: Filtro por extensão/padrão de arquivo
+Use `includeFolders` para especificar **APENAS** as pastas que devem ser baixadas. Tudo que não estiver na lista será ignorado.
 
 ## Comandos
 
-- `SFTP Dev Sync: Create/Edit Config` - Criar ou editar configuração
-- `SFTP Dev Sync: Download Project` - Baixar projeto inteiro (filtrado)
-- `SFTP Dev Sync: Upload File` - Enviar arquivo único
-- `SFTP Dev Sync: Sync Local → Remote` - Sincronizar local para servidor
-- `SFTP Dev Sync: Sync Remote → Local` - Sincronizar servidor para local
-- `SFTP Dev Sync: Diff Local vs Remote` - Comparar arquivo local com remoto
-
-## Características
-
-✅ Download seletivo por pasta (allowlist)  
-✅ Upload automático ao salvar  
-✅ Explorador remoto na barra lateral  
-✅ Sincronização bidirecional  
-✅ Comparação de arquivos  
-✅ Suporte a SSH com chave privada  
-✅ Fila de transferências com controle de concorrência  
+- **Sync Remote → Local** - Sincronizar servidor para local
+- **Sync Local → Remote** - Sincronizar local para servidor
+- **Upload File** - Enviar arquivo
+- **Download File** - Baixar arquivo
+- **Diff with Remote** - Comparar com arquivo remoto
 
 ## License
 
