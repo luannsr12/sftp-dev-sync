@@ -8,6 +8,10 @@ module.exports = {
         test: /\.ts$/,
         use: 'ts-loader',
         exclude: /node_modules/
+      },
+      {
+        test: /\.node$/,
+        loader: 'node-loader'
       }
     ]
   },
@@ -22,7 +26,9 @@ module.exports = {
   },
   devtool: 'source-map',
   externals: {
-    vscode: 'commonjs vscode'
+    vscode: 'commonjs vscode',
+    'cpu-features': 'commonjs cpu-features',
+    'ssh2': 'commonjs ssh2'
   },
   target: 'node'
 };

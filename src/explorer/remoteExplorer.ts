@@ -2,11 +2,7 @@ import * as vscode from 'vscode';
 import { ConnectionManager } from '../connection';
 import { Logger } from '../utils/logger';
 
-export class RemoteNode implements vscode.TreeItem {
-  label: string;
-  collapsibleState: vscode.TreeItemCollapsibleState;
-  iconPath?: string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri };
-  command?: vscode.Command;
+export class RemoteNode extends vscode.TreeItem {
   isDirectory: boolean;
   remotePath: string;
 
@@ -16,10 +12,9 @@ export class RemoteNode implements vscode.TreeItem {
     isDirectory: boolean,
     collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None
   ) {
-    this.label = label;
+    super(label, collapsibleState);
     this.remotePath = remotePath;
     this.isDirectory = isDirectory;
-    this.collapsibleState = collapsibleState;
 
     if (isDirectory) {
       this.iconPath = new vscode.ThemeIcon('folder');
@@ -61,7 +56,7 @@ export class RemoteExplorer implements vscode.TreeDataProvider<RemoteNode> {
       const remotePath = element ? element.remotePath : config.remotePath;
       const files = await client.list(remotePath);
 
-      return files.map((file) => {
+      return files.map((file: any) => {
         const fullPath = `${remotePath}/${file.name}`.replace(/\/+/g, '/');
         const isDir = file.type === 'd';
         return new RemoteNode(

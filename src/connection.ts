@@ -1,7 +1,16 @@
 import Client from 'ssh2-sftp-client';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { SftpConfig } from './config';
 import { Logger } from './utils/logger';
+
+function expandPath(filePath: string): string {
+  if (filePath.startsWith('~')) {
+    return path.join(os.homedir(), filePath.slice(1));
+  }
+  return filePath;
+}
 
 export class ConnectionManager {
   private client: Client | null = null;
@@ -35,9 +44,8 @@ export class ConnectionManager {
 
       // Use password or private key
       if (config.privateKey) {
-        const fs = await import('fs');
         connectionConfig.privateKey = fs.readFileSync(
-          path.expand(config.privateKey)
+          expandPath(config.privateKey)
         );
         if (config.passphrase) {
           connectionConfig.passphrase = config.passphrase;
@@ -90,11 +98,4 @@ export class ConnectionManager {
   isConnected(): boolean {
     return this.client !== null;
   }
-}
-
-// Helper for expanding ~ in paths
-if (!String.prototype.expand) {
-  (String.prototype as any).expand = function () {
-    return this.replace(/^~/, require('os').homedir());
-  };
 }

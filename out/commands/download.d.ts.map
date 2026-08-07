@@ -1,0 +1,1 @@
+{"version":3,"file":"download.d.ts","sourceRoot":"","sources":["../../src/commands/download.ts"],"names":[],"mappings":"AAIA,OAAO,EAAE,iBAAiB,EAAE,MAAM,eAAe,CAAC;AAClD,OAAO,EAAE,aAAa,EAAE,MAAM,WAAW,CAAC;AAC1C,OAAO,EAAE,MAAM,EAAE,MAAM,iBAAiB,CAAC;AAGzC,wBAAsB,eAAe,CACnC,iBAAiB,EAAE,iBAAiB,EACpC,aAAa,EAAE,aAAa,EAC5B,MAAM,EAAE,MAAM,GACb,OAAO,CAAC,IAAI,CAAC,CAkEf"}
