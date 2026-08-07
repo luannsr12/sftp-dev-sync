@@ -15,16 +15,16 @@ Crie um arquivo `.vscode/sftp-dev-sync.json` na raiz do seu projeto:
 ```json
 {
     "name": "Meu Servidor",
-    "host": "77.37.40.227",
+    "host": "example.com",
     "port": 22,
     "protocol": "sftp",
-    "username": "root",
-    "password": "senha",
-    "remotePath": "/www/wwwroot/meusite.com",
+    "username": "deploy",
+    "password": "sua-senha-aqui",
+    "remotePath": "/var/www/app",
     "uploadOnSave": true,
     "includeFolders": [
-        "control",
-        "api",
+        "src",
+        "public",
         "config"
     ],
     "includeFiles": [
