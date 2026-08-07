@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SFTP Dev Sync Configuration",
+  "type": "object",
+  "required": ["host", "remotePath"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Connection name"
+    },
+    "host": {
+      "type": "string",
+      "description": "SFTP server hostname or IP address"
+    },
+    "port": {
+      "type": "number",
+      "default": 22,
+      "description": "SFTP server port"
+    },
+    "protocol": {
+      "type": "string",
+      "enum": ["sftp"],
+      "default": "sftp",
+      "description": "Protocol to use"
+    },
+    "username": {
+      "type": "string",
+      "description": "SSH username"
+    },
+    "password": {
+      "type": "string",
+      "description": "SSH password (not recommended, use privateKey instead)"
+    },
+    "privateKey": {
+      "type": "string",
+      "description": "Path to private SSH key file"
+    },
+    "passphrase": {
+      "type": "string",
+      "description": "Passphrase for encrypted private key"
+    },
+    "remotePath": {
+      "type": "string",
+      "description": "Remote directory path on server"
+    },
+    "localPath": {
+      "type": "string",
+      "description": "Local directory to sync with (defaults to workspace root)"
+    },
+    "uploadOnSave": {
+      "type": "boolean",
+      "default": false,
+      "description": "Automatically upload file when saved locally"
+    },
+    "includeFolders": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of folders to include when downloading (allowlist). If empty, all folders are included.",
+      "examples": [
+        ["src", "public", "config"],
+        ["app/**", "routes/**"]
+      ]
+    },
+    "includeFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "File patterns to include (e.g., '*.php', '*.js'). If empty, all files are included.",
+      "examples": [
+        ["*.php", "*.js", "*.css"],
+        ["*.json", "*.html"]
+      ]
+    },
+    "ignore": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Patterns to ignore (fallback when includeFolders is empty)"
+    }
+  }
+}
