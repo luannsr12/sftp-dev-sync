@@ -50,6 +50,8 @@ interface ServiceOption {
   };
   ignore: string[];
   ignoreFile: string;
+  includeFolders?: string[];
+  includeFiles?: string[];
   remoteExplorer: {
     filesExclude?: string[];
     order: number;
@@ -592,12 +594,23 @@ export default class FileService {
     const localContext = this.baseDir;
     const remoteContext = config.remotePath;
 
+    // includeFolders mode: only allow listed folders
+    const includeFolders = config.includeFolders && config.includeFolders.length > 0
+      ? config.includeFolders
+      : null;
+    const includeFiles = config.includeFiles && config.includeFiles.length > 0
+      ? config.includeFiles
+      : null;
+
     const ignoreConfig = filesIgnoredFromConfig(config);
-    if (ignoreConfig.length <= 0) {
+
+    // If neither ignore nor include is set, allow everything
+    if (ignoreConfig.length <= 0 && !includeFolders && !includeFiles) {
       return null;
     }
 
-    const ignore = Ignore.from(ignoreConfig);
+    const ignore = ignoreConfig.length > 0 ? Ignore.from(ignoreConfig) : null;
+
     const ignoreFunc = fsPath => {
       // vscode will always return path with / as separator
       const normalizedPath = path.normalize(fsPath);
@@ -611,7 +624,62 @@ export default class FileService {
       }
 
       // skip root
-      return relativePath !== '' && ignore.ignores(relativePath);
+      if (relativePath === '') {
+        return false;
+      }
+
+      // First check traditional ignore patterns
+      if (ignore && ignore.ignores(relativePath)) {
+        return true;
+      }
+
+      // If includeFolders is set, check if path is within allowed folders
+      if (includeFolders) {
+        const normalizedRelative = relativePath.replace(/\\/g, '/');
+        const parts = normalizedRelative.split('/');
+        const topFolder = parts[0];
+
+        // Allow .vscode folder always
+        if (topFolder === '.vscode') {
+          return false;
+        }
+
+        // Check if this path starts with any of the included folders
+        const isIncluded = includeFolders.some(folder => {
+          const cleanFolder = folder.replace(/^\//, '').replace(/\/+$/, '');
+          return topFolder === cleanFolder || normalizedRelative.startsWith(cleanFolder + '/');
+        });
+
+        if (!isIncluded) {
+          return true; // ignore = not in the include list
+        }
+      }
+
+      // If includeFiles is set, check file extension
+      if (includeFiles) {
+        const normalizedRelative = relativePath.replace(/\\/g, '/');
+        const parts = normalizedRelative.split('/');
+
+        // Don't filter directories by file pattern
+        // Only filter actual files (no trailing slash, has extension)
+        const lastPart = parts[parts.length - 1];
+        if (lastPart.indexOf('.') !== -1) {
+          // It's a file, check patterns
+          const matchesPattern = includeFiles.some(pattern => {
+            if (pattern.startsWith('*')) {
+              const ext = pattern.slice(1); // e.g. ".php" from "*.php"
+              return lastPart.endsWith(ext);
+            }
+            return lastPart === pattern;
+          });
+
+          if (!matchesPattern) {
+            return true; // ignore = doesn't match include patterns
+          }
+        }
+      }
+
+      return false;
     };
 
     return ignoreFunc;
